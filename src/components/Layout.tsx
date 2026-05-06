@@ -1,7 +1,7 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { User } from '../types'
-import { Github } from 'lucide-react'
+
 
 interface LayoutProps {
   user: User | null
@@ -13,11 +13,6 @@ export default function Layout({ user }: LayoutProps) {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     navigate('/')
-  }
-
-  const handleAtualizarGitHub = () => {
-    alert('GitHub atualizado com sucesso!')
-    navigate('/dashboard')
   }
 
   return (
@@ -32,14 +27,13 @@ export default function Layout({ user }: LayoutProps) {
               <>
                 <Link 
                   to="/dashboard" 
-                  className="flex items-center gap-2 no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]"
-                  onClick={handleAtualizarGitHub}
+                  className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]"
                 >
-                  <Github size={20} />
-                  <span>Painel</span>
+                  Painel
                 </Link>
-                <Link to="/categorias" className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]">Categorias</Link>
-                <Link to="/links" className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]">Links</Link>
+                
+                <Link to="/dashboard/categorias" className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]">Categorias</Link>
+                <Link to="/dashboard/links" className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040]">Links</Link>
                 <button 
                   onClick={handleLogout}
                   className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040] bg-transparent border-none cursor-pointer"
