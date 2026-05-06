@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import type { Categoria } from '../types'
 
 export default function CategoriasForm() {
   const { id } = useParams()
