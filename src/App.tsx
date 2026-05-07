@@ -12,6 +12,7 @@ import CategoriasList from './pages/CategoriasList'
 import CategoriasForm from './pages/CategoriasForm'
 import LinksList from './pages/LinksList'
 import LinksForm from './pages/LinksForm'
+import Deploy from './pages/Deploy'
 
 function ProtectedRoute({ children, user }: { children: React.ReactNode; user: User | null }) {
   if (!user) return <Navigate to="/login" />
@@ -57,6 +58,7 @@ function App() {
             <Route path="links" element={<LinksList />} />
             <Route path="links/criar" element={<LinksForm />} />
             <Route path="links/editar/:id" element={<LinksForm />} />
+            <Route path="deploy" element={<Deploy />} />
           </Route>
         </Route>
       </Routes>
