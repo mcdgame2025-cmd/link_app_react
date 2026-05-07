@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { uploadToCloudinary } from '../lib/cloudinary'
 import type { Categoria } from '../types'
 
 export default function LinksForm() {
@@ -10,6 +11,8 @@ export default function LinksForm() {
   const [url, setUrl] = useState('')
   const [descricao, setDescricao] = useState('')
   const [imagem, setImagem] = useState('')
+  const [imagemFile, setImagemFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [categoriasSelecionadas, setCategoriasSelecionadas] = useState<number[]>([])
   const [loading, setLoading] = useState(false)
@@ -35,7 +38,7 @@ export default function LinksForm() {
     const { data } = await supabase
       .from('links_link')
       .select('*')
-      .eq('id', id)
+      .eq('id', parseInt(id || ''))
       .single()
 
     if (data) {
@@ -44,31 +47,105 @@ export default function LinksForm() {
       setDescricao(data.descricao || '')
       setImagem(data.imagem || '')
     }
+
+    const { data: relData } = await supabase
+      .from('links_link_categorias')
+      .select('categoria_id')
+      .eq('link_id', parseInt(id || ''))
+
+    if (relData) {
+      setCategoriasSelecionadas(relData.map(r => r.categoria_id))
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
 
+    let imagemUrl = imagem
+
+    if (imagemFile) {
+      setUploading(true)
+      try {
+        imagemUrl = await uploadToCloudinary(imagemFile)
+      } catch (err) {
+        alert('Erro ao fazer upload da imagem: ' + (err as Error).message)
+        setLoading(false)
+        setUploading(false)
+        return
+      }
+      setUploading(false)
+    }
+
     const linkData = {
       nome,
       url,
       descricao: descricao || null,
-      imagem: imagem || null,
+      imagem: imagemUrl || null,
     }
 
-    if (isEditing) {
-      await supabase
+    let linkId: number | undefined
+    let error: any
+
+    if (isEditing && id) {
+      const linkIdNum = parseInt(id)
+      const result = await supabase
         .from('links_link')
         .update(linkData)
-        .eq('id', id)
+        .eq('id', linkIdNum)
+      error = result.error
+      linkId = linkIdNum
     } else {
-      await supabase
+      const { data: insertedLink, error: insertError } = await supabase
         .from('links_link')
         .insert(linkData)
+        .select()
+        .single()
+      
+      error = insertError
+      
+      if (insertedLink) {
+        linkId = insertedLink.id
+      } else {
+        const { data: existingLink } = await supabase
+          .from('links_link')
+          .select('id')
+          .eq('nome', nome)
+          .eq('url', url)
+          .single()
+        if (existingLink) {
+          linkId = existingLink.id
+        }
+      }
     }
 
-navigate('/dashboard/links')
+    if (error || !linkId) {
+      alert('Erro ao salvar')
+      setLoading(false)
+      return
+    }
+
+    await supabase
+      .from('links_link_categorias')
+      .delete()
+      .eq('link_id', linkId)
+
+    if (categoriasSelecionadas.length > 0) {
+      const categoriasData = categoriasSelecionadas.map(catId => ({
+        link_id: linkId,
+        categoria_id: catId
+      }))
+      const { error: catError } = await supabase
+        .from('links_link_categorias')
+        .insert(categoriasData)
+      if (catError) {
+        console.error('Erro ao salvar categorias:', catError)
+        alert('Erro ao salvar categorias: ' + catError.message)
+      }
+    }
+
+    setLoading(false)
+    navigate('/dashboard/links')
   }
 
   return (
@@ -111,14 +188,41 @@ navigate('/dashboard/links')
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm mb-2">URL da Imagem</label>
-          <input
-            type="url"
-            value={imagem}
-            onChange={(e) => setImagem(e.target.value)}
-            className="w-full px-4 py-2 rounded bg-[#1a1a1a] border border-[#404040] text-white"
-            placeholder="https://exemplo.com/imagem.jpg"
-          />
+          <label className="block text-sm mb-2">Imagem</label>
+          <div className="flex gap-2 items-center">
+            {imagem ? (
+              <div className="relative inline-block">
+                <img src={imagem} alt="Preview" className="w-16 h-16 rounded object-cover border border-[#404040]" />
+                <button
+                  type="button"
+                  onClick={() => { setImagem(''); setImagemFile(null) }}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <label className="cursor-pointer bg-[#3498db] hover:bg-[#2980b9] text-white px-3 py-2 rounded text-sm">
+                <span>Escolher Imagem</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setImagemFile(file)
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        setImagem(reader.result as string)
+                      }
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+              </label>
+            )}
+          </div>
         </div>
 
         <div className="mb-6">
@@ -154,14 +258,14 @@ navigate('/dashboard/links')
         <div className="flex gap-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploading}
             className="flex-1 bg-[#3498db] text-white py-2 rounded hover:bg-[#2980b9] disabled:opacity-50"
           >
-            {loading ? 'Salvando...' : 'Salvar'}
+            {loading || uploading ? 'Salvando...' : 'Salvar'}
           </button>
           <button
             type="button"
-            onClick={() => navigate('/links')}
+            onClick={() => navigate('/dashboard/links')}
             className="flex-1 bg-[#404040] text-white py-2 rounded hover:bg-[#505050]"
           >
             Cancelar

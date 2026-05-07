@@ -26,12 +26,19 @@ export default function CategoriasList() {
   async function handleDelete(id: number) {
     if (!confirm('Tem certeza que deseja excluir esta categoria?')) return
 
+    await supabase
+      .from('links_link_categorias')
+      .delete()
+      .eq('categoria_id', id)
+
     const { error } = await supabase
       .from('links_categoria')
       .delete()
       .eq('id', id)
 
-    if (!error) {
+    if (error) {
+      alert('Erro ao excluir: ' + error.message)
+    } else {
       fetchCategorias()
     }
   }
@@ -43,7 +50,7 @@ export default function CategoriasList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-semibold text-white">Categorias</h1>
         <Link 
-          to="/categorias/criar" 
+          to="criar" 
           className="flex items-center gap-2 bg-[#3498db] text-white px-4 py-2 rounded hover:bg-[#2980b9] w-full sm:w-auto justify-center"
         >
           <Plus size={20} />
@@ -59,17 +66,17 @@ export default function CategoriasList() {
             <table className="w-full">
               <thead className="bg-[#1a1a1a]">
                 <tr>
-                  <th className="text-left p-4 text-gray-400">Nome</th>
-                  <th className="text-right p-4 text-gray-400">Ações</th>
+                  <th className="text-left p-2 text-gray-400">Nome</th>
+                  <th className="text-right p-2 text-gray-400">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {categorias.map((categoria) => (
                   <tr key={categoria.id} className="border-t border-[#404040]">
-                    <td className="p-4">{categoria.nome}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-2">{categoria.nome}</td>
+                    <td className="p-2 text-right">
                       <button 
-                        onClick={() => navigate(`/categorias/editar/${categoria.id}`)}
+                        onClick={() => navigate(`editar/${categoria.id}`)}
                         className="text-[#3498db] hover:text-[#2980b9] mr-4"
                       >
                         <Edit size={20} />
@@ -87,13 +94,13 @@ export default function CategoriasList() {
             </table>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-2">
             {categorias.map((categoria) => (
-              <div key={categoria.id} className="bg-[#2d2d2d] p-4 rounded-lg flex items-center justify-between">
+              <div key={categoria.id} className="bg-[#2d2d2d] p-2 rounded-lg flex items-center justify-between">
                 <span className="text-white font-medium">{categoria.nome}</span>
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => navigate(`/categorias/editar/${categoria.id}`)}
+                    onClick={() => navigate(`editar/${categoria.id}`)}
                     className="text-[#3498db] hover:text-[#2980b9] p-2"
                   >
                     <Edit size={20} />

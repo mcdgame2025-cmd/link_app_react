@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { User } from '../types'
 import { Menu, X } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 
 interface LayoutProps {
@@ -67,20 +68,21 @@ export default function Layout({ user }: LayoutProps) {
                 >
                   Links
                 </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040] bg-transparent border-none cursor-pointer text-left block"
-                >
-                  Logout
-                </button>
                 <Link 
                   to="/dashboard/deploy" 
-                  className="no-underline text-[#e0e0e0] px-3 py-2 rounded-md hover:bg-[#404040] block flex items-center gap-2"
+                  className="no-underline text-[#e0e0e0] p-2 rounded-md hover:bg-[#404040] block"
                   onClick={() => setMenuOpen(false)}
+                  title="Deploy"
                 >
-                  <GitHubIcon size={18} />
-                  Deploy
+                  <GitHubIcon size={20} />
                 </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="no-underline text-[#e0e0e0] p-2 rounded-md hover:bg-[#404040] bg-transparent border-none cursor-pointer block"
+                  title="Logout"
+                >
+                  <LogOut size={20} />
+                </button>
               </>
             ) : (
               <Link 

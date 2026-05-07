@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Github, Play, Terminal } from 'lucide-react'
+import { Github, Play, Terminal, Copy, Check } from 'lucide-react'
 
 export default function Deploy() {
   const [message, setMessage] = useState('')
   const [output, setOutput] = useState('')
+  const [copied, setCopied] = useState(false)
 
   const runDeploy = () => {
     if (!message.trim()) {
@@ -13,12 +14,17 @@ export default function Deploy() {
 
     const escapedMsg = message.replace(/"/g, '\\"')
     setOutput(`
-# Execute estes comandos no terminal:
-
 git add .
 git commit -m "${escapedMsg}"
 git push
 `)
+  }
+
+  const copyCommands = () => {
+    const text = output.trim()
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -53,9 +59,18 @@ git push
 
       {output && (
         <div className="mt-6 bg-[#1a1a1a] p-4 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <Terminal size={18} className="text-gray-400" />
-            <span className="text-gray-400">No terminal, execute:</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Terminal size={18} className="text-gray-400" />
+              <span className="text-gray-400">Comandos:</span>
+            </div>
+            <button
+              onClick={copyCommands}
+              className="flex items-center gap-2 text-gray-400 hover:text-white"
+            >
+              {copied ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
+              {copied ? 'Copiado!' : 'Copiar'}
+            </button>
           </div>
           <pre className="text-green-400 font-mono text-sm whitespace-pre-wrap">{output}</pre>
         </div>

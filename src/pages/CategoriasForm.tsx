@@ -31,18 +31,26 @@ export default function CategoriasForm() {
     e.preventDefault()
     setLoading(true)
 
+    let error
     if (isEditing) {
-      await supabase
+      const result = await supabase
         .from('links_categoria')
         .update({ nome })
         .eq('id', id)
+      error = result.error
     } else {
-      await supabase
+      const result = await supabase
         .from('links_categoria')
         .insert({ nome })
+      error = result.error
     }
 
-    navigate('/dashboard/categorias')
+    if (error) {
+      alert('Erro ao salvar: ' + error.message)
+      setLoading(false)
+    } else {
+      navigate('/dashboard/categorias')
+    }
   }
 
   return (

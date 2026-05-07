@@ -47,12 +47,19 @@ export default function LinksList() {
   async function handleDelete(id: number) {
     if (!confirm('Tem certeza que deseja excluir este link?')) return
 
+    await supabase
+      .from('links_link_categorias')
+      .delete()
+      .eq('link_id', id)
+
     const { error } = await supabase
       .from('links_link')
       .delete()
       .eq('id', id)
 
-    if (!error) {
+    if (error) {
+      alert('Erro ao excluir: ' + error.message)
+    } else {
       fetchLinks()
     }
   }
@@ -80,33 +87,33 @@ export default function LinksList() {
             <table className="w-full">
               <thead className="bg-[#1a1a1a]">
                 <tr>
-                  <th className="text-left p-4 text-gray-400">Imagem</th>
-                  <th className="text-left p-4 text-gray-400">Nome</th>
-                  <th className="text-left p-4 text-gray-400">URL</th>
-                  <th className="text-left p-4 text-gray-400">Categorias</th>
-                  <th className="text-right p-4 text-gray-400">Ações</th>
+                  <th className="text-left p-2 text-gray-400">Imagem</th>
+                  <th className="text-left p-2 text-gray-400">Nome</th>
+                  <th className="text-left p-2 text-gray-400">URL</th>
+                  <th className="text-left p-2 text-gray-400">Categorias</th>
+                  <th className="text-right p-2 text-gray-400">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {links.map((link) => (
                   <tr key={link.id} className="border-t border-[#404040]">
-                    <td className="p-4">
+                    <td className="p-2">
                       {link.imagem && (
-                        <img src={link.imagem} alt="" className="w-10 h-10 rounded object-cover" />
+                        <img src={link.imagem} alt="" className="w-8 h-8 rounded object-cover" />
                       )}
                     </td>
-                    <td className="p-4 text-white">{link.nome}</td>
-                    <td className="p-4 text-gray-400 truncate max-w-xs">{link.url}</td>
-                    <td className="p-4">
+                    <td className="p-2 text-white">{link.nome}</td>
+                    <td className="p-2 text-gray-400 truncate max-w-xs">{link.url}</td>
+                    <td className="p-2">
                       <div className="flex flex-wrap gap-1">
                         {link.categorias?.map((cat) => (
-                          <span key={cat.id} className="text-xs bg-[#3498db]/20 text-[#3498db] px-2 py-1 rounded">
+                          <span key={cat.id} className="text-xs bg-[#3498db]/20 text-[#3498db] px-1 py-0.5 rounded">
                             {cat.nome}
                           </span>
                         ))}
                       </div>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="p-2 text-right">
                       <button 
                         onClick={() => navigate(`editar/${link.id}`)}
                         className="text-[#3498db] hover:text-[#2980b9] mr-4"
@@ -126,26 +133,26 @@ export default function LinksList() {
             </table>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:hidden gap-2">
             {links.map((link) => (
-              <div key={link.id} className="bg-[#2d2d2d] p-4 rounded-lg">
-                <div className="flex items-start gap-3">
+              <div key={link.id} className="bg-[#2d2d2d] p-2 rounded-lg">
+                <div className="flex items-start gap-2">
                   {link.imagem && (
-                    <img src={link.imagem} alt="" className="w-12 h-12 rounded object-cover" />
+                    <img src={link.imagem} alt="" className="w-10 h-10 rounded object-cover" />
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white">{link.nome}</h3>
                     <p className="text-sm text-gray-400 truncate">{link.url}</p>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-1 mt-2">
+                <div className="flex flex-wrap gap-1 mt-1">
                   {link.categorias?.map((cat) => (
-                    <span key={cat.id} className="text-xs bg-[#3498db]/20 text-[#3498db] px-2 py-1 rounded">
+                    <span key={cat.id} className="text-xs bg-[#3498db]/20 text-[#3498db] px-1 py-0.5 rounded">
                       {cat.nome}
                     </span>
                   ))}
                 </div>
-                <div className="flex gap-3 mt-3 pt-3 border-t border-[#404040]">
+                <div className="flex gap-2 mt-2 pt-2 border-t border-[#404040]">
                   <button 
                     onClick={() => navigate(`editar/${link.id}`)}
                     className="flex-1 flex items-center justify-center gap-2 text-[#3498db] hover:text-[#2980b9] py-2"
