@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Categoria, Link } from '../types'
+import type { Categoria } from '../types'
 
 export default function Home() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [links, setLinks] = useState<Link[]>([])
-  const [linksFiltrados, setLinksFiltrados] = useState<Link[]>([])
+  const [allLinks, setAllLinks] = useState<any[]>([])
+  const [linksFiltrados, setLinksFiltrados] = useState<any[]>([])
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -37,12 +37,12 @@ export default function Home() {
         setCategorias(categoriasData)
       }
       if (linksData && relData) {
-        setLinks(linksData)
         const linksComCategorias = linksData.map(link => ({
           ...link,
           categoriaIds: relData.filter(r => r.link_id === link.id).map(r => r.categoria_id)
         }))
-        setLinksFiltrados(linksComCategorias as any)
+        setAllLinks(linksComCategorias)
+        setLinksFiltrados(linksComCategorias)
       }
       setLoading(false)
     }
@@ -51,11 +51,11 @@ export default function Home() {
 
   useEffect(() => {
     if (categoriaSelecionada === null) {
-      setLinksFiltrados(links)
+      setLinksFiltrados(allLinks)
     } else {
-      setLinksFiltrados(links.filter((l: any) => l.categoriaIds?.includes(categoriaSelecionada)))
+      setLinksFiltrados(allLinks.filter((l: any) => l.categoriaIds?.includes(categoriaSelecionada)))
     }
-  }, [categoriaSelecionada, links])
+  }, [categoriaSelecionada, allLinks])
 
   if (loading) return <div>Carregando...</div>
 
@@ -66,16 +66,16 @@ export default function Home() {
   )
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="w-full md:w-64 flex-shrink-0">
-        <div className="bg-[#2d2d2d] p-4 rounded-lg">
-          <h2 className="text-lg font-semibold mb-4 text-white border-b border-[#404040] pb-2">
+    <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+      <div className="w-full md:w-48 lg:w-56 flex-shrink-0">
+        <div className="bg-[#2d2d2d] p-2 md:p-3 rounded-lg">
+          <h2 className="text-lg font-semibold mb-2 text-white border-b border-[#404040] pb-2">
             Categorias
           </h2>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <button
               onClick={() => setCategoriaSelecionada(null)}
-              className={`text-left px-3 py-2 rounded transition-colors ${
+              className={`text-left px-2 py-1 md:px-3 md:py-2 rounded transition-colors ${
                 categoriaSelecionada === null 
                   ? 'bg-[#3498db] text-white' 
                   : 'text-[#e0e0e0] hover:bg-[#404040]'
@@ -87,7 +87,7 @@ export default function Home() {
               <button
                 key={cat.id}
                 onClick={() => setCategoriaSelecionada(cat.id)}
-                className={`text-left px-3 py-2 rounded transition-colors ${
+                className={`text-left px-2 py-1 md:px-3 rounded transition-colors ${
                   categoriaSelecionada === cat.id 
                     ? 'bg-[#3498db] text-white' 
                     : 'text-[#e0e0e0] hover:bg-[#404040]'
@@ -104,18 +104,18 @@ export default function Home() {
         {linksFiltrados.length === 0 ? (
           <p className="text-center text-gray-400 mt-10">Nenhum link encontrado.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {linksFiltrados.map((link) => (
               <a
                 key={link.id}
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-[#2d2d2d] p-4 rounded-lg hover:bg-[#363636] transition-colors"
+                className="bg-[#2d2d2d] p-2 md:p-3 rounded-lg hover:bg-[#363636] transition-colors"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   {link.imagem && (
-                    <img src={link.imagem} alt="" className="w-10 h-10 rounded object-cover" />
+                    <img src={link.imagem} alt="" className="w-8 h-8 md:w-10 md:h-10 rounded object-cover" />
                   )}
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white truncate">{link.nome}</h3>
